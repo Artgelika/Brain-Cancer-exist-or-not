@@ -4,7 +4,6 @@
 TODO: Dowiedziec sie dlaczego w wielu przykladach z internetu
 w CNN ludzie zamiast zdjec importuja csv ?
 Moze by bardzo przeanalizowac ten przyklad, to sie dowiem.
-@author: angel
 """
 
 # import libraries______________
@@ -37,8 +36,8 @@ from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 
 # Data_________________________
-TRAIN_DIR = r"C:\Users\angel\OneDrive\Pulpit\sieci\Projekt\INPUT\train"
-TEST_DIR = r"C:\Users\angel\OneDrive\Pulpit\sieci\Projekt\INPUT\test"
+TRAIN_DIR = r"C:\Users\angel\AppData\Local\Programs\Python\Sieci VSCode\sieci\Projekt\INPUT\train"
+TEST_DIR = r"C:\Users\angel\AppData\Local\Programs\Python\Sieci VSCode\sieci\Projekt\INPUT\test"
 IMG_SIZE = 50
 LR = 1e-3
 
@@ -47,8 +46,8 @@ TEST = len(os.listdir(TEST_DIR)) # number of photos - test
 
 img_train, img_test = [], []
 
-# import photos from train i test
-# Y -> [1,0] N -> [0,1]
+# import photos from train and test
+# Y -> [1,0] N -> [0,1] - labels
 ####################### TRAIN #######################
 # TRAIN - YES
 for i in range(TRAIN):
@@ -58,8 +57,9 @@ for i in range(TRAIN):
         img = Image.open(filename)
         # img.show()
         # convert image to numpy array
-        data = asarray(img)
+        data = asarray(img) # gives the value of each pixel of the NumPy array image
         img_train.append(data)
+        img_train.append([1,0])
     except:
         pass
 
@@ -74,11 +74,14 @@ for i in range(TRAIN):
         # convert image to numpy array
         data = asarray(img)
         img_train.append(data)
+        img_train.append([0,1])
     except:
         pass
     
-print(len(img_train))
+print("Length img_train: ",len(img_train)) # 202 photos
 print(img_train[0][0][0])
+
+# print(img_train[:10])
 
 # Validation data
 
@@ -93,6 +96,7 @@ for i in range(TEST):
         # convert image to numpy array
         data = asarray(img)
         img_test.append(data)
+        img_train.append(list(1,0))
     except:
         pass
     
@@ -106,17 +110,19 @@ for i in range(TEST):
         # convert image to numpy array
         data = asarray(img)
         img_test.append(data)
+        img_train.append(list(0,1))
     except:
         pass
     
 print(len(img_test))
 print(img_test[0][0][0])
 
-# get to computer know which photo is yes and which no  
-def label_img(img):
-    word_label = img.split(".")[0][0]
-    if word_label == "Y": return 1
-    if word_label == "N": return 0
+# get to computer know which photo is yes and which is no 
+# ? That could be in a second approach, because I've define before which photo is yes, which is no by addind [0,1] matrix
+# def label_img(img):
+#     word_label = img.split(".")[0][0]
+#     if word_label == "Y": return 1
+#     if word_label == "N": return 0
     
     
     
