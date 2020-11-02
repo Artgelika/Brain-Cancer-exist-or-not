@@ -1,9 +1,12 @@
-# -*- coding: utf-8 -*-
 """
--iteruje po zdjeciach
-TODO: Dowiedziec sie dlaczego w wielu przykladach z internetu
-w CNN ludzie zamiast zdjec importuja csv ?
-Moze by bardzo przeanalizowac ten przyklad, to sie dowiem.
+BRAIN CANCER - IS OR NOT?
+
+Main steps to this task (with code)
+TODO: Import photos taking into account train and test set - validation set (?)
+TODO: Create labels to each photo - to point which is yes which is no
+TODO: Changing photo into numbers
+TODO: Conv + MaxPooling 
+TODO: Predictions
 """
 
 # import libraries______________
@@ -38,108 +41,41 @@ from sklearn.model_selection import train_test_split
 # Data_________________________
 TRAIN_DIR = r"C:\Users\angel\AppData\Local\Programs\Python\Sieci VSCode\sieci\Projekt\INPUT\train"
 TEST_DIR = r"C:\Users\angel\AppData\Local\Programs\Python\Sieci VSCode\sieci\Projekt\INPUT\test"
+CATEGORIES = ["yes", "no"]
+
+BATCH_SIZE = 100
 IMG_SIZE = 50
 LR = 1e-3
 
-TRAIN = len(os.listdir(TRAIN_DIR)) # number of photos - train
-TEST = len(os.listdir(TEST_DIR)) # number of photos - test
-
-img_train, img_test = [], []
-
-# import photos from train and test
-# Y -> [1,0] N -> [0,1] - labels
-####################### TRAIN #######################
-# TRAIN - YES
-for i in range(TRAIN):
-    try:
-        # load the image
-        filename = os.path.join(TRAIN_DIR, "Y" + str(i) + ".jpg")
-        img = Image.open(filename)
-        # img.show()
-        # convert image to numpy array
-        data = asarray(img) # gives the value of each pixel of the NumPy array image
-        img_train.append(data)
-        img_train.append([1,0])
-    except:
-        pass
+# MODEL_NAME = 'PresenceOfCancer-{}-{}.model'.format(LR, '2conv-basic')
 
 
-# TRAIN - NO  
-for i in range(TRAIN):
-    try:
-        # load the image
-        filename = os.path.join(TRAIN_DIR, "N" + str(i) + ".jpg")
-        img = Image.open(filename)
-        # img.show()
-        # convert image to numpy array
-        data = asarray(img)
-        img_train.append(data)
-        img_train.append([0,1])
-    except:
-        pass
-    
-print("Length img_train: ",len(img_train)) # 202 photos
-print(img_train[0][0][0])
-
-# print(img_train[:10])
-
-# Validation data
-
-####################### TEST #######################
-# TEST - YES
-for i in range(TEST):
-    try:
-        # load the image
-        filename = os.path.join(TRAIN_DIR, "Y" + str(i) + ".jpg")
-        img = Image.open(filename)
-        # img.show()
-        # convert image to numpy array
-        data = asarray(img)
-        img_test.append(data)
-        img_train.append(list(1,0))
-    except:
-        pass
-    
-# TEST - NO
-for i in range(TEST):
-    try:
-        # load the image
-        filename = os.path.join(TRAIN_DIR, "N" + str(i) + ".jpg")
-        img = Image.open(filename)
-        # img.show()
-        # convert image to numpy array
-        data = asarray(img)
-        img_test.append(data)
-        img_train.append(list(0,1))
-    except:
-        pass
-    
-print(len(img_test))
-print(img_test[0][0][0])
-
-# get to computer know which photo is yes and which is no 
-# ? That could be in a second approach, because I've define before which photo is yes, which is no by addind [0,1] matrix
+# # get to computer know which photo is yes and which is no 
 # def label_img(img):
-#     word_label = img.split(".")[0][0]
-#     if word_label == "Y": return 1
-#     if word_label == "N": return 0
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+#     word_label = img[0] # first letter define it
+#     if word_label == "Y": return [1, 0]
+#     elif word_label == "N": return [0, 1]
+
+# def create_train_data():
+#     training_data = []
+#     for img in tqdm(os.listdir(TRAIN_DIR)): # show a smart progress of loops 
+#         label = label_img(img)
+#         path = os.path.join(TRAIN_DIR, img)
+#         img = cv2.resize(cv2.imread(path, cv2.IMREAD_GRAYSCALE), (IMG_SIZE, IMG_SIZE))
+#         training_data.append([np.array(img), np.array(label)])
+#     shuffle(training_data)    
+#     np.save('train_data.npy', training_data)
+#     return training_data
+
+
+# # Processing the data
+# TRAIN = len(os.listdir(TRAIN_DIR)) # number of photos - train
+# TEST = len(os.listdir(TEST_DIR)) # number of photos - test
+
+# img_train, img_test = [], []
+
+# # import photos from train and test
+
 
 
 
