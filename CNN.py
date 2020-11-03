@@ -2,37 +2,21 @@
 BRAIN CANCER - IS OR NOT?
 
 Main steps to this task (with code)
-TODO: Import photos taking into account train and test set - validation set (?)
-TODO: Create labels to each photo - to point which is yes which is no
-TODO: Changing photo into numbers
-TODO: Conv + MaxPooling 
-TODO: Predictions
+Import photos taking into account train and test set
+Create labels to each photo - to point which is yes which is no
+Changing photo into numbers
 
 ? training and testing data in one, the same script?
 Changing that into two files or leave as it is now
 """
 
 # import libraries______________
-# from PIL import Image
-# from numpy import asarray
-# import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import seaborn as sns
 
 np.random.seed(2)
-
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix
-# import itertools
-
-from keras.utils.np_utils import to_categorical # convert to one-hot-encoding
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D
-from keras.optimizers import RMSprop
-from keras.preprocessing.image import ImageDataGenerator
-from keras.callbacks import ReduceLROnPlateau
 
 import cv2 # to resize pictures
 import os
@@ -110,6 +94,7 @@ for features, label in training_data:
  
 # X should be a numpy array; -1 that could mean "any number"
 X = np.array(X).reshape(-1, IMG_SIZE, IMG_SIZE, 1) # 1 because it is a grayscale
+# y = np.array(y) #.reshape(-1, IMG_SIZE, IMG_SIZE, 1)
 
 # Saving training data 
 pickle_out = open("X.pickle", "wb")
@@ -121,10 +106,10 @@ pickle.dump(y, pickle_out)
 pickle_out.close()
 
 # always is a possible to load it to our current script
-pickle_in = open("X.pickle","rb")
-X = pickle.load(pickle_in)
+# pickle_in = open("X.pickle","rb")
+# X = pickle.load(pickle_in)
 
 # pickle_in = open("y.pickle","rb")
 # y = pickle.load(pickle_in)
 
-print("X_0:", X[0])
+# print("X_0:", X[0])
