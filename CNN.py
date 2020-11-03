@@ -94,7 +94,7 @@ for features, label in training_data:
  
 # X should be a numpy array; -1 that could mean "any number"
 X = np.array(X).reshape(-1, IMG_SIZE, IMG_SIZE, 1) # 1 because it is a grayscale
-# y = np.array(y) #.reshape(-1, IMG_SIZE, IMG_SIZE, 1)
+y = np.array(y).reshape(-1, 1) # also reshape to be consistent with x
 
 # Saving training data 
 pickle_out = open("X.pickle", "wb")
@@ -112,4 +112,4 @@ pickle_out.close()
 # pickle_in = open("y.pickle","rb")
 # y = pickle.load(pickle_in)
 
-# print("X_0:", X[0])
+print("X_0:", X[0])
