@@ -7,6 +7,7 @@ Predictions
 Data from X.pickle and y.pickle which  was generated in CNN.py file
 
 # * I need to experiment with activation functions and number of epochs, because accuracy is low
+# ? Maybe experiment with data - scaling photo
 """
 
 # import libraries
@@ -18,22 +19,23 @@ import pickle
 
 # data
 BATCH_SIZE = 32
-EPOCHS = 10
+EPOCHS = 15
 LR = 1e-3
 
 # import data
-X = pickle.load(open("X.pickle","rb"))
-y = pickle.load(open("y.pickle","rb"))
+X = pickle.load(open("X.train","rb"))
+y = pickle.load(open("y.train","rb"))
 # print("X: ", X)
 # print("y: ", y)
 # y2 = []
 # for el in y:
 #     y2.append(list(el))
 # print(y2[:10])
+
 # Normalizing that data - scale that data
 X = X/255.0
 
-model = Sequential()
+model = Sequential() # Sequential - the way to build a model in Keras layer by layer
 
 model.add(Conv2D(256, (3,3), input_shape = X.shape[1:])) # 1: because we needn't to -1
 model.add(Activation("relu"))
@@ -54,5 +56,5 @@ model.compile(loss="binary_crossentropy",
             metrics=['accuracy'])
             
 model.fit(X, y, BATCH_SIZE, EPOCHS, validation_split=0.1) # batch_size= epochs = 
-
+# model.summary()
 

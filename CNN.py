@@ -30,7 +30,7 @@ TEST_DIR = r"C:\Users\angel\AppData\Local\Programs\Python\Sieci VSCode\sieci\Pro
 # CATEGORIES = ["yes", "no"]
 
 BATCH_SIZE = 100
-IMG_SIZE = 50
+IMG_SIZE = 100
 LR = 1e-3
 
 # MODEL_NAME = 'PresenceOfCancer-{}-{}.model'.format(LR, '2conv-basic')
@@ -48,7 +48,7 @@ def label_img(img):
 
 # _______Building data_______
 
-# training data
+### training data ###
 training_data = []
 def create_train_data():
     for img in tqdm(os.listdir(TRAIN_DIR)): # show a smart progress of loops 
@@ -67,6 +67,34 @@ create_train_data()
 print("Train:", len(training_data)) # 202
 print(training_data[:3]) # [[array1, [0,1]], [array2, [0,1]] ... ]
 
+# preparing data to a version which is available in neural network
+X, y = [], []
+for features, label in training_data:
+    X.append(features)
+    y.append(label)
+ 
+# X should be a numpy array; -1 that could mean "any number"
+X = np.array(X).reshape(-1, IMG_SIZE, IMG_SIZE, 1) # 1 because it is a grayscale
+y = np.array(y).reshape(-1, 1) # also reshape to be consistent with x
+
+# Saving training data 
+pickle_out = open("X.train", "wb")
+pickle.dump(X, pickle_out)
+pickle_out.close()
+
+pickle_out = open("y.train", "wb")
+pickle.dump(y, pickle_out)
+pickle_out.close()
+
+# always is a possible to load it to our current script
+# pickle_in = open("X.pickle","rb")
+# X = pickle.load(pickle_in)
+
+# pickle_in = open("y.pickle","rb")
+# y = pickle.load(pickle_in)
+
+
+### test data ###
 # Similarly creating test data
 testing_data = []
 def create_test_data():
@@ -87,29 +115,22 @@ create_test_data()
 # print(testing_data[:3]) # [[array1, [0,1]], [array2, [0,1]] ... ]
 
 # preparing data to a version which is available in neural network
-X, y = [], []
+X_test, y_test = [], []
 for features, label in training_data:
-    X.append(features)
-    y.append(label)
+    X_test.append(features)
+    y_test.append(label)
  
 # X should be a numpy array; -1 that could mean "any number"
-X = np.array(X).reshape(-1, IMG_SIZE, IMG_SIZE, 1) # 1 because it is a grayscale
-y = np.array(y).reshape(-1, 1) # also reshape to be consistent with x
+X_test = np.array(X).reshape(-1, IMG_SIZE, IMG_SIZE, 1) # 1 because it is a grayscale
+y_test = np.array(y).reshape(-1, 1) # also reshape to be consistent with x
 
 # Saving training data 
-pickle_out = open("X.pickle", "wb")
-pickle.dump(X, pickle_out)
+pickle_out = open("X.test", "wb")
+pickle.dump(X_test, pickle_out)
 pickle_out.close()
 
-pickle_out = open("y.pickle", "wb")
-pickle.dump(y, pickle_out)
+pickle_out = open("y.test", "wb")
+pickle.dump(y_test, pickle_out)
 pickle_out.close()
 
-# always is a possible to load it to our current script
-# pickle_in = open("X.pickle","rb")
-# X = pickle.load(pickle_in)
 
-# pickle_in = open("y.pickle","rb")
-# y = pickle.load(pickle_in)
-
-print("X_0:", X[0])
