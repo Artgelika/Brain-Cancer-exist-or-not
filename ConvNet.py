@@ -16,24 +16,44 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Activation
 from tensorflow.keras.layers import Flatten, Conv2D, MaxPooling2D
 import pickle
+import numpy as np
 
 # data
 BATCH_SIZE = 32
 EPOCHS = 15
 LR = 1e-3
+VALIDATION = 0.1 # part of test data which will be a validation set: from 0 to 1
 
+print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 # import data
 X = pickle.load(open("X.train","rb"))
 y = pickle.load(open("y.train","rb"))
-# print("X: ", X)
-# print("y: ", y)
-# y2 = []
-# for el in y:
-#     y2.append(list(el))
-# print(y2[:10])
 
 # Normalizing that data - scale that data
 X = X/255.0
+
+# reshaping y test set - [0,1] is count as 1 element, not two
+
+# creating two sets from training data
+X_val = X[:int(len(X)*VALIDATION)] # Validation
+y_val = y[:int(len(y)*VALIDATION)]
+
+X_train = X[int(len(X)*VALIDATION):] # Training
+y_train = y[int(len(y)*VALIDATION):]
+
+
+
+# print("X_train:", X_train[:3])
+# print("y_train:", y_train[:3])
+
+# print("X_val: ", X_val[:3])
+# print("y_val: ", y_val[:3])
+
+# print("X: ", X)
+# print("y: ", y)
+
+
+
 
 model = Sequential() # Sequential - the way to build a model in Keras layer by layer
 
@@ -51,10 +71,23 @@ model.add(Dense(64))
 model.add(Dense(1))
 model.add(Activation('sigmoid'))
 
-model.compile(loss="binary_crossentropy",
+
+# Train the model
+model.compile(loss="binary_crossentropy", # loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
             optimizer="adam",
             metrics=['accuracy'])
-            
-model.fit(X, y, BATCH_SIZE, EPOCHS, validation_split=0.1) # batch_size= epochs = 
+
+# print(y_train[:3])
+# print("X:", len(X)) # 202
+# print("Y:", len(y)) # 202
+# print("X_train:", len(X_train)) # 182
+# print("y_train:", len(y_train)) # 182
+# print("X_val:", len(X_val)) # 20
+# print("y_val:", len(y_val)) # 20
+
+# ! Thing below: "validation_data=(X_val, y_val)" cause an error because:  ValueError: logits and labels must have the same shape ((None, 1) vs (None, 2))
+# history = model.fit(x=X_train, y=y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, 
+#                     validation_data=(X_val.T, y_val.T), shuffle=True) # ? transpose or not transpose?
+# model.fit(X, y, BATCH_SIZE, EPOCHS, validation_split=0.1) # batch_size= epochs = 
 # model.summary()
 
