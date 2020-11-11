@@ -7,14 +7,15 @@ Create labels to each photo - to point which is yes which is no
 Changing photo into numbers
 
 ? training and testing data in one, the same script?
+
 Changing that into two files or leave as it is now
 """
 
 # import libraries______________
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import seaborn as sns
+# import matplotlib.pyplot as plt
+# import matplotlib.image as mpimg
+# import seaborn as sns
 
 np.random.seed(2)
 
@@ -37,7 +38,7 @@ LR = 1e-3
 
 # # Processing the data
 TRAIN = len(os.listdir(TRAIN_DIR)) # number of photos - train -> 202
-TEST = len(os.listdir(TEST_DIR)) # number of photos - test -> 56
+TEST = len(os.listdir(TEST_DIR)) # number of photos - test -> 51
 # print("Train: {}, Test: {}".format(TRAIN, TEST))
 
 # get to computer know which photo is yes and which is no 
@@ -65,17 +66,21 @@ def create_train_data():
 
 create_train_data()
 print("Train:", len(training_data)) # 202
-print(training_data[:3]) # [[array1, [0,1]], [array2, [0,1]] ... ]
+# print(training_data[:3]) # [[array1, [0,1]], [array2, [0,1]] ... ]
 
 # preparing data to a version which is available in neural network
 X, y = [], []
 for features, label in training_data:
     X.append(features)
     y.append(label)
- 
-# X should be a numpy array; -1 that could mean "any number"
+
+
+# # X should be a numpy array; -1 that could mean "any number"
 X = np.array(X).reshape(-1, IMG_SIZE, IMG_SIZE, 1) # 1 because it is a grayscale
-y = np.array(y).reshape(-1, 1) # also reshape to be consistent with x
+y = np.array(y).reshape(-1, 2) # also reshape to be consistent with x
+
+print("X train: {}, y train: {}".format(len(X), len(y)))
+# print("Y test sth:", y[:3])
 
 # Saving training data 
 pickle_out = open("X.train", "wb")
@@ -116,13 +121,16 @@ create_test_data()
 
 # preparing data to a version which is available in neural network
 X_test, y_test = [], []
-for features, label in training_data:
+for features, label in testing_data:
     X_test.append(features)
     y_test.append(label)
  
 # X should be a numpy array; -1 that could mean "any number"
 X_test = np.array(X).reshape(-1, IMG_SIZE, IMG_SIZE, 1) # 1 because it is a grayscale
-y_test = np.array(y).reshape(-1, 1) # also reshape to be consistent with x
+y_test = np.array(y).reshape(-1, 2) # also reshape to be consistent with x
+
+print("X_test:", len(X_test))
+print("y_test:", len(y_test))
 
 # Saving training data 
 pickle_out = open("X.test", "wb")
