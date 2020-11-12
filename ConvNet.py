@@ -24,25 +24,35 @@ EPOCHS = 15
 LR = 1e-3
 VALIDATION = 0.1 # part of test data which will be a validation set: from 0 to 1
 
-print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX") # easily way to notice where is beginning of specific compilation
 # import data
 X = pickle.load(open("X.train","rb"))
 y = pickle.load(open("y.train","rb"))
 
 # Normalizing that data - scale that data
 X = X/255.0
+y = np.array(y).reshape(-1, 1)
+
+# if I want to to use the above validation, I have to reduce the dimension to twice lower
+# in this case I will take into consideration only first number from a label eg. [1,0]
 
 # reshaping y test set - [0,1] is count as 1 element, not two
 
 # creating two sets from training data
-X_val = X[:int(len(X)*VALIDATION)] # Validation
-y_val = y[:int(len(y)*VALIDATION)]
+# without dividing below it works with second "fit" 
+# X_val = X[:int(len(X)*VALIDAT sTION):]
 
-X_train = X[int(len(X)*VALIDATION):] # Training
-y_train = y[int(len(y)*VALIDATION):]
+# ____shapes of matrices____
+# print("X.shape", X.shape) # (202, 100, 100, 1)
+# print("y.shape", y.shape) # (202, 2)
 
+# print("X_val.shape", X_val.shape) # (20, 100, 100, 1)
+# print("y_val.shape", y_val.shape) # (20, 2)
 
+# print("X_train.shape", X_train.shape) # (182, 100, 100, 1)
+# print("y_train.shape", y_train.shape) # (182, 2)
 
+# ____quick look at how data is looking____
 # print("X_train:", X_train[:3])
 # print("y_train:", y_train[:3])
 
@@ -51,8 +61,6 @@ y_train = y[int(len(y)*VALIDATION):]
 
 # print("X: ", X)
 # print("y: ", y)
-
-
 
 
 model = Sequential() # Sequential - the way to build a model in Keras layer by layer
@@ -86,8 +94,8 @@ model.compile(loss="binary_crossentropy", # loss=tf.keras.losses.SparseCategoric
 # print("y_val:", len(y_val)) # 20
 
 # ! Thing below: "validation_data=(X_val, y_val)" cause an error because:  ValueError: logits and labels must have the same shape ((None, 1) vs (None, 2))
-# history = model.fit(x=X_train, y=y_train, batch_size=BATCH_SIZE, epochs=EPOCHS, 
-#                     validation_data=(X_val.T, y_val.T), shuffle=True) # ? transpose or not transpose?
-# model.fit(X, y, BATCH_SIZE, EPOCHS, validation_split=0.1) # batch_size= epochs = 
+# history = model.fit(x=X_train, y=y_train, batch_size=BATCH_SIZE, epochs=EPOCHS,  # validation_data=(X_val.T, y_val.T)
+#                     validation_data=(X_val, y_val), shuffle=True) # ? transpose or not transpose?
+model.fit(X, y, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_split=0.1) # batch_size= epochs = 
 # model.summary()
 
