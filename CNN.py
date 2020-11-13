@@ -34,7 +34,6 @@ BATCH_SIZE = 100
 IMG_SIZE = 100
 LR = 1e-3
 
-# MODEL_NAME = 'PresenceOfCancer-{}-{}.model'.format(LR, '2conv-basic')
 
 # # Processing the data
 TRAIN = len(os.listdir(TRAIN_DIR)) # number of photos - train -> 202
@@ -44,8 +43,8 @@ TEST = len(os.listdir(TEST_DIR)) # number of photos - test -> 51
 # get to computer know which photo is yes and which is no 
 def label_img(img):
     word_label = img[0] # first letter define it
-    if word_label == "Y": return [1, 0]
-    elif word_label == "N": return [0, 1]
+    if word_label == "Y": return 1 # [1, 0]
+    elif word_label == "N": return 0 # [0, 1]
 
 # _______Building data_______
 
@@ -65,30 +64,30 @@ def create_train_data():
     return training_data
 
 create_train_data()
-print("Train:", len(training_data)) # 202
+# print("Train:", len(training_data)) # 202
 # print(training_data[:3]) # [[array1, [0,1]], [array2, [0,1]] ... ]
 
 # preparing data to a version which is available in neural network
-X, y = [], []
+X_train, y_train = [], []
 for features, label in training_data:
-    X.append(features)
-    y.append(label)
+    X_train.append(features)
+    y_train.append(label)
 
 
 # # X should be a numpy array; -1 that could mean "any number"
-X = np.array(X).reshape(-1, IMG_SIZE, IMG_SIZE, 1) # 1 because it is a grayscale
-y = np.array(y).reshape(-1, 2) # also reshape to be consistent with x
+X_train = np.array(X_train).reshape(-1, IMG_SIZE, IMG_SIZE, 1) # 1 because it is a grayscale
+# y = np.array(y_train).reshape(-1, 2) # also reshape to be consistent with x
 
-print("X train: {}, y train: {}".format(len(X), len(y)))
+print("X train: {}, y train: {}".format(len(X_train), len(y_train)))
 # print("Y test sth:", y[:3])
 
 # Saving training data 
 pickle_out = open("X.train", "wb")
-pickle.dump(X, pickle_out)
+pickle.dump(X_train, pickle_out)
 pickle_out.close()
 
 pickle_out = open("y.train", "wb")
-pickle.dump(y, pickle_out)
+pickle.dump(y_train, pickle_out)
 pickle_out.close()
 
 # always is a possible to load it to our current script
@@ -126,8 +125,8 @@ for features, label in testing_data:
     y_test.append(label)
  
 # X should be a numpy array; -1 that could mean "any number"
-X_test = np.array(X).reshape(-1, IMG_SIZE, IMG_SIZE, 1) # 1 because it is a grayscale
-y_test = np.array(y).reshape(-1, 2) # also reshape to be consistent with x
+X_test = np.array(X_test).reshape(-1, IMG_SIZE, IMG_SIZE, 1) # 1 because it is a grayscale
+# y_test = np.array(y_test).reshape(-1, 2) # also reshape to be consistent with x
 
 print("X_test:", len(X_test))
 print("y_test:", len(y_test))
