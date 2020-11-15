@@ -43,6 +43,7 @@ y_test = pickle.load(open("y.test","rb"))
 
 
 # Normalizing that data - scale that data
+<<<<<<< HEAD
 X_train = X_train/255.0
 y_train = np.array(y_train).reshape(-1, 1)
 
@@ -57,6 +58,10 @@ y_val = y_train[:int(len(y_train)*VALIDATION)]
 
 X_train = X_train[int(len(X_train)*VALIDATION):]
 y_train = y_train[int(len(y_train)*VALIDATION):]
+=======
+X = X/255.0
+y = np.array(y).reshape(-1, 1)
+>>>>>>> e4033cd264ec2d5c6203363636ed5183429b76fd
 
 # Create a model
 model = Sequential() # Sequential - the way to build a model in Keras layer by layer
@@ -137,6 +142,18 @@ history = model.fit_generator(datagen.flow(X_train, y_train, batch_size=BATCH_SI
                               verbose = 2, steps_per_epoch=X_train.shape[0] // BATCH_SIZE,
                               callbacks=[learning_rate_reduction])
 
+<<<<<<< HEAD
+=======
+# print(y_train[:3])
+# print("X:", len(X)) # 202
+# print("Y:", len(y)) # 202
+# print("X_train:", len(X_train)) # 182
+# print("y_train:", len(y_train)) # 182
+# print("X_val:", len(X_val)) # 20
+# print("y_val:", len(y_val)) # 20 
+
+model.fit(X, y, batch_size=BATCH_SIZE, epochs=EPOCHS, validation_split=VALIDATION, callbacks=[tensorboard]) # batch_size= epochs = 
+>>>>>>> e4033cd264ec2d5c6203363636ed5183429b76fd
 # model.summary()
 
 ###
