@@ -15,6 +15,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Activation
 from tensorflow.keras.layers import Flatten, Conv2D, MaxPooling2D
 from tensorflow.keras.callbacks import TensorBoard
+from tensorflow import keras
 import pickle
 import numpy as np
 import seaborn as sns
@@ -24,16 +25,16 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import ReduceLROnPlateau
 
 
+
 # data
 BATCH_SIZE = 35
-EPOCHS = 16
+EPOCHS = 30
 LR = 1e-4
 VALIDATION = 0.1 # part of test data which will be a validation set: from 0 to 1
 
-# MODEL_NAME = 'PresenceOfCancer-{}-{}.model'.format(LR, '2conv-basic')
+# MODEL_NAME = 'PresenceOfCancer-{}-{}.model'.format(LR, '2conv-basic') # if I could use tensorboard
 # tensorboard = TensorBoard(log_dir='logs/{}'.format(MODEL_NAME))
 
-print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX") # easy way to notice where is beginning of specific compilation
 # import data
 X_train = pickle.load(open("X.train","rb"))
 y_train = pickle.load(open("y.train","rb"))
@@ -76,35 +77,14 @@ model.add(Dense(64))
 model.add(Dense(1))
 model.add(Activation('sigmoid'))
 
-
-#########################################
-## I've tried to use another combination of model
-# model = Sequential() # Sequential - the way to build a model in Keras layer by layer
-
-# # model = Sequential() # Sequential - the way to build a model in Keras layer by layer
-
-# model.add(Conv2D(256, (3,3), input_shape = X_train.shape[1:])) # 1: because we needn't to -1
-# model.add(Activation("relu"))
-# model.add(MaxPooling2D(pool_size = (2,2)))
-# model.add(Dropout(0.25))
-
-# model.add(Conv2D(256, (3,3)))
-# model.add(Activation("relu"))
-# model.add(MaxPooling2D(pool_size = (2,2)))
-# model.add(Dropout(0.25))
-
-# model.add(Flatten())
-# model.add(Dense(64))
-# model.add(Activation("relu"))
-
-# model.add(Dense(1))
-# model.add(Activation('sigmoid'))
-####################################################
-
 # # Train the model
 model.compile(loss="binary_crossentropy", # loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
             optimizer="adam",
             metrics=['accuracy'])
+
+# Define the Keras TensorBoard callback.
+# logdir="logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+# tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
 
 learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy', 
                                             patience=3, 
@@ -129,15 +109,74 @@ datagen = ImageDataGenerator(
         vertical_flip=False)  # randomly flip images
 
 datagen.fit(X_train)
-datagen.fit(X_val)
-
+# datagen.fit(X_val)
+ 
 # Fit the model
-history = model.fit_generator(datagen.flow(X_train, y_train, batch_size=BATCH_SIZE),
+history = model.fit(datagen.flow(X_train, y_train, batch_size=BATCH_SIZE),
                               epochs = EPOCHS, validation_data=(X_val, y_val),
-                              verbose = 2, steps_per_epoch=X_train.shape[0] // BATCH_SIZE,
-                              callbacks=[learning_rate_reduction])
+                              verbose = 1, steps_per_epoch=X_train.shape[0] // BATCH_SIZE,
+                              callbacks=[learning_rate_reduction]) # , tensorboard
+
+# visualize accuracy and loss
+
+# four plots together_____________________
+
+_, axs = plt.subplots(2,2)
+axs[0,0].plot(history.history['loss'], 'r') # train loss
+axs[0,0].set_ylabel("Error")
+axs[0,0].set_xlabel("Epochs")
+axs[0,0].set_title("loss")
+axs[0,0].grid()
+
+axs[0,1].plot(history.history['accuracy'], 'g')  # val loss
+axs[0,1].set_ylabel("Accuracy")
+axs[0,1].set_xlabel("Epochs")
+axs[0,1].set_title("accuracy")
+axs[0,1].grid()
+
+axs[1,0].plot(history.history['val_loss'], 'r') # train loss
+axs[1,0].set_ylabel("Error")
+axs[1,0].set_xlabel("Epochs")
+axs[1,0].set_title("val loss")
+axs[1,0].grid()
+
+axs[1,1].plot(history.history['val_accuracy'], 'g') # val loss
+axs[1,1].set_ylabel("Accuracy")
+axs[1,1].set_xlabel("Epochs")
+axs[1,1].set_title("val accuracy")
+axs[1,1].grid()
+
+plt.subplots_adjust(wspace = 0.5, hspace=0.5)
+plt.savefig('accuracy_loss_four.png')
+plt.show()
+# ________________________
+
+# two plots in one
+
+# 1 loss
+plt.close()
+plt.plot(history.history['val_loss'], 'r', history.history['loss'], 'b')
+plt.grid()
+plt.title("Loss")
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.legend(["val_loss", "train_loss"])
+plt.savefig('val_train_loss.png')
+plt.show()
+
+# 2 acc
+plt.close()
+plt.plot(history.history['val_accuracy'], 'r', history.history['accuracy'], 'b')
+plt.grid()
+plt.title("Accuracy")
+plt.xlabel("Epochs")
+plt.ylabel("Accuracy")
+plt.legend(["val_acc", "train_acc"])
+plt.savefig('val_train_acc.png')
+plt.show()
 
 # model.summary()
+
 
 ###
 # # predicting the test set results
@@ -152,3 +191,5 @@ print("Our accuracy is {}%".format(((cm[0][0] + cm[1][1])/51)*100))
 sns.heatmap(cm,annot=True)
 plt.savefig('h.png')
 plt.show()
+
+
