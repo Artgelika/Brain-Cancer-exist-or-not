@@ -6,18 +6,12 @@ Import photos taking into account train and test set
 Create labels to each photo - to point which is yes which is no
 Changing photo into numbers
 
-? training and testing data in one, the same script?
-
 Changing that into two files or leave as it is now
 """
 
 # import libraries______________
 import numpy as np
-# import matplotlib.pyplot as plt
-# import matplotlib.image as mpimg
-# import seaborn as sns
-
-np.random.seed(2)
+np.random.seed(8)
 
 import cv2 # to resize pictures
 import os
@@ -28,23 +22,22 @@ import pickle # for saving data
 # Data_________________________
 TRAIN_DIR = r"C:\Users\angel\AppData\Local\Programs\Python\Sieci VSCode\sieci\Projekt\INPUT\train"
 TEST_DIR = r"C:\Users\angel\AppData\Local\Programs\Python\Sieci VSCode\sieci\Projekt\INPUT\test"
-# CATEGORIES = ["yes", "no"]
 
 BATCH_SIZE = 100
-IMG_SIZE = 100
-LR = 1e-3
-
+IMG_SIZE = 50
 
 # # Processing the data
 TRAIN = len(os.listdir(TRAIN_DIR)) # number of photos - train -> 202
 TEST = len(os.listdir(TEST_DIR)) # number of photos - test -> 51
 # print("Train: {}, Test: {}".format(TRAIN, TEST))
 
+
 # get to computer know which photo is yes and which is no 
 def label_img(img):
     word_label = img[0] # first letter define it
     if word_label == "Y": return 1 # [1, 0]
     elif word_label == "N": return 0 # [0, 1]
+
 
 # _______Building data_______
 
@@ -126,10 +119,8 @@ for features, label in testing_data:
  
 # X should be a numpy array; -1 that could mean "any number"
 X_test = np.array(X_test).reshape(-1, IMG_SIZE, IMG_SIZE, 1) # 1 because it is a grayscale
-# y_test = np.array(y_test).reshape(-1, 2) # also reshape to be consistent with x
 
-print("X_test:", len(X_test))
-print("y_test:", len(y_test))
+print("X_test: {}, y_test: {}".format(len(X_test), len(y_test)))
 
 # Saving training data 
 pickle_out = open("X.test", "wb")
