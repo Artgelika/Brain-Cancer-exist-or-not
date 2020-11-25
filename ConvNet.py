@@ -7,15 +7,14 @@ Predictions
 Data from X.pickle and y.pickle which  was generated in CNN.py file
 
 """
-# * with current settings, acuuracy is approx 85,3%
 
 # import libraries
 import tensorflow as tf
+from tensorflow import keras
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Activation
 from tensorflow.keras.layers import Flatten, Conv2D, MaxPooling2D
-from tensorflow.keras.callbacks import TensorBoard
-from tensorflow import keras
+# from tensorflow.keras.callbacks import TensorBoard
 import pickle
 import numpy as np
 import seaborn as sns
@@ -25,11 +24,10 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import ReduceLROnPlateau
 
 
-
 # data
 BATCH_SIZE = 35
-EPOCHS = 30
-LR = 1e-4
+EPOCHS = 20
+LR = 1e-3
 VALIDATION = 0.1 # part of test data which will be a validation set: from 0 to 1
 
 # MODEL_NAME = 'PresenceOfCancer-{}-{}.model'.format(LR, '2conv-basic') # if I could use tensorboard
@@ -66,16 +64,18 @@ model.add(Conv2D(256, (3,3), input_shape = X_train.shape[1:])) # 1: because we n
 model.add(Activation("relu"))
 model.add(MaxPooling2D(pool_size = (2,2)))
 
-model.add(Conv2D(256, (3,3)))
+model.add(Conv2D(256, (3,3), strides=(2,2), padding="valid"))
 model.add(Activation("relu"))
 model.add(MaxPooling2D(pool_size = (2,2)))
 
 model.add(Flatten())
-model.add(Dense(64))
+model.add(Dense(64)) # , kernel_initializer='uniform'
 # model.add(Activation("relu"))
 
 model.add(Dense(1))
 model.add(Activation('sigmoid'))
+
+# opt = keras.optimizers.Adam(learning_rate=LR) # using this - the score is approx 60%
 
 # # Train the model
 model.compile(loss="binary_crossentropy", # loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
@@ -95,7 +95,7 @@ learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy',
 
 # With data augmentation to prevent overfitting
 
-datagen = ImageDataGenerator( 
+augment_data = ImageDataGenerator( 
         featurewise_center=False,  # set input mean to 0 over the dataset
         samplewise_center=False,  # set each sample mean to 0
         featurewise_std_normalization=False,  # divide inputs by std of the dataset
@@ -108,11 +108,11 @@ datagen = ImageDataGenerator(
         horizontal_flip=False,  # randomly flip images
         vertical_flip=False)  # randomly flip images
 
-datagen.fit(X_train)
-# datagen.fit(X_val)
+augment_data.fit(X_train)
+augment_data.fit(X_val)
  
 # Fit the model
-history = model.fit(datagen.flow(X_train, y_train, batch_size=BATCH_SIZE),
+history = model.fit(augment_data.flow(X_train, y_train, batch_size=BATCH_SIZE),
                               epochs = EPOCHS, validation_data=(X_val, y_val),
                               verbose = 1, steps_per_epoch=X_train.shape[0] // BATCH_SIZE,
                               callbacks=[learning_rate_reduction]) # , tensorboard
