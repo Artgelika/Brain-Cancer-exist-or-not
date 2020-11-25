@@ -11,13 +11,14 @@ Changing that into two files or leave as it is now
 
 # import libraries______________
 import numpy as np
-np.random.seed(8)
+np.random.seed(5)
 
 import cv2 # to resize pictures
 import os
 from random import shuffle
 from tqdm import tqdm
 import pickle # for saving data
+import random
 
 # Data_________________________
 TRAIN_DIR = r"C:\Users\angel\AppData\Local\Programs\Python\Sieci VSCode\sieci\Projekt\INPUT\train"
@@ -58,7 +59,11 @@ def create_train_data():
 
 create_train_data()
 # print("Train:", len(training_data)) # 202
-# print(training_data[:3]) # [[array1, [0,1]], [array2, [0,1]] ... ]
+# print(training_data[:3]) # [[array1, array(0)], [array2, array(1)] ... ]
+
+# here is the place to shuffle
+random.shuffle(training_data)
+
 
 # preparing data to a version which is available in neural network
 X_train, y_train = [], []
@@ -110,6 +115,8 @@ def create_test_data():
 create_test_data()
 # print("Test:", len(testing_data)) # 51
 # print(testing_data[:3]) # [[array1, [0,1]], [array2, [0,1]] ... ]
+
+random.shuffle(testing_data)
 
 # preparing data to a version which is available in neural network
 X_test, y_test = [], []
