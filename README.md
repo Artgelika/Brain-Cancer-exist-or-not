@@ -5,3 +5,4 @@ Structure of my network:
 1. Prepare photos' names in file "Zmiana_nazwy.py".
 2. Using that photos in "CNN.py", changing them into numbers and saving.
 3. Using data had prepared before (in CNN.py). Creating a model with a train set and fitting with additional validation set in "ConvNet.py".
+4. The folder named "plots" concerns plots created in "ConvNet.py", which present training and validation accuracy and loss. 
