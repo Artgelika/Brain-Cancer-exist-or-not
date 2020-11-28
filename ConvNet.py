@@ -117,67 +117,6 @@ history = model.fit(augment_data.flow(X_train, y_train, batch_size=BATCH_SIZE),
                               verbose = 1, steps_per_epoch=X_train.shape[0] // BATCH_SIZE,
                               callbacks=[learning_rate_reduction]) # , tensorboard
 
-# visualize accuracy and loss
-
-# four plots together_____________________
-
-_, axs = plt.subplots(2,2)
-axs[0,0].plot(history.history['loss'], 'r') # train loss
-axs[0,0].set_ylabel("Error")
-axs[0,0].set_xlabel("Epochs")
-axs[0,0].set_title("loss")
-axs[0,0].grid()
-
-axs[0,1].plot(history.history['accuracy'], 'g')  # val loss
-axs[0,1].set_ylabel("Accuracy")
-axs[0,1].set_xlabel("Epochs")
-axs[0,1].set_title("accuracy")
-axs[0,1].grid()
-
-axs[1,0].plot(history.history['val_loss'], 'r') # train loss
-axs[1,0].set_ylabel("Error")
-axs[1,0].set_xlabel("Epochs")
-axs[1,0].set_title("val loss")
-axs[1,0].grid()
-
-axs[1,1].plot(history.history['val_accuracy'], 'g') # val loss
-axs[1,1].set_ylabel("Accuracy")
-axs[1,1].set_xlabel("Epochs")
-axs[1,1].set_title("val accuracy")
-axs[1,1].grid()
-
-plt.subplots_adjust(wspace = 0.5, hspace=0.5)
-plt.savefig('accuracy_loss_four.png')
-plt.show()
-# ________________________
-
-# two plots in one
-
-# 1 loss
-plt.close()
-plt.plot(history.history['val_loss'], 'r', history.history['loss'], 'b')
-plt.grid()
-plt.title("Loss")
-plt.xlabel("Epochs")
-plt.ylabel("Loss")
-plt.legend(["val_loss", "train_loss"])
-plt.savefig('val_train_loss.png')
-plt.show()
-
-# 2 acc
-plt.close()
-plt.plot(history.history['val_accuracy'], 'r', history.history['accuracy'], 'b')
-plt.grid()
-plt.title("Accuracy")
-plt.xlabel("Epochs")
-plt.ylabel("Accuracy")
-plt.legend(["val_acc", "train_acc"])
-plt.savefig('val_train_acc.png')
-plt.show()
-
-# model.summary()
-
-
 ###
 # # predicting the test set results
 y_pred = model.predict(X_test)
