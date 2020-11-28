@@ -116,7 +116,7 @@ def model_brain_tumor(X_train: np.array, y_train: np.array, X_val: np.array, y_v
             vertical_flip=False)  # randomly flip images
 
     augment_data.fit(X_train)
-    augment_data.fit(X_val)
+    # augment_data.fit(X_val)
        
     # Fit the model
     history = model.fit(augment_data.flow(X_train, y_train, batch_size=p['BATCH_SIZE']), # augment_data.flow(X_train, y_train, batch_size=p['BATCH_SIZE']),
