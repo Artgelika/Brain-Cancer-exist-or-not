@@ -22,11 +22,18 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import ReduceLROnPlateau
+# keras tuner
+from kerastuner.applications import HyperResNet
+from kerastuner.tuners import Hyperband
+from kerastuner.tuners import RandomSearch
+from kerastuner.engine.hyperparameters import HyperParameters
+
+import time
 
 
 # data
-BATCH_SIZE = 35
-EPOCHS = 20
+BATCH_SIZE = 15 #100
+EPOCHS = 300#2#000 # 603
 LR = 1e-3
 VALIDATION = 0.1 # part of test data which will be a validation set: from 0 to 1
 
@@ -58,77 +65,83 @@ X_train = X_train[int(len(X_train)*VALIDATION):]
 y_train = y_train[int(len(y_train)*VALIDATION):]
 
 # Create a model
-model = Sequential() # Sequential - the way to build a model in Keras layer by layer
+def build_model(hp):
+    model = Sequential() # Sequential - the way to build a model in Keras layer by layer
 
-model.add(Conv2D(256, (3,3), input_shape = X_train.shape[1:])) # 1: because we needn't to -1
-model.add(Activation("relu"))
-model.add(MaxPooling2D(pool_size = (2,2)))
+    model.add(Conv2D(hp.Int('input_units',
+                             min_value=48,
+                             max_value=240,
+                             step=64), (3,3), input_shape = X_train.shape[1:])) # 1: because we needn't to -1
+                              
+    model.add(Activation("relu"))
+    model.add(MaxPooling2D(pool_size = (2,2)))
 
-model.add(Conv2D(256, (3,3), strides=(2,2), padding="valid"))
-model.add(Activation("relu"))
-model.add(MaxPooling2D(pool_size = (2,2)))
+#     for _ in range(hp.Int('n_layers', 1, 3)):
+#         model.add(Conv2D(hp.Int('input_units',
+#                              min_value=16,
+#                              max_value=128,
+#                              step=32), (3,3)))
+#         model.add(Activation("relu"))
 
-model.add(Flatten())
-model.add(Dense(64)) # , kernel_initializer='uniform'
-# model.add(Activation("relu"))
+    model.add(Conv2D(hp.Int('input_units',
+                             min_value=16,
+                             max_value=32,
+                             step=16), (3,3), strides=(2,2), padding="valid"))
+    model.add(Activation("relu"))
+    model.add(MaxPooling2D(pool_size = (2,2)))
 
-model.add(Dense(1))
-model.add(Activation('sigmoid'))
+    model.add(Conv2D(hp.Int('input_units',
+                             min_value=96,
+                             max_value=128,
+                             step=32), (3,3), strides=(2,2), padding="valid"))
+    model.add(Activation("relu"))
+    model.add(MaxPooling2D(pool_size = (2,2)))
 
+    model.add(Flatten())
+    model.add(Dense(64)) # , kernel_initializer='uniform'
+    # model.add(Activation("relu"))
+
+    model.add(Dense(1))
+    model.add(Activation('sigmoid'))
+    
 # opt = keras.optimizers.Adam(learning_rate=LR) # using this - the score is approx 60%
 
 # # Train the model
-model.compile(loss="binary_crossentropy", # loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-            optimizer="adam",
-            metrics=['accuracy'])
+    model.compile(loss="binary_crossentropy", # loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                optimizer="nadam",
+                metrics=['accuracy'])
+    return model
 
-# Define the Keras TensorBoard callback.
-# logdir="logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-# tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
+LOG_DIR = f"{int(time.time())}"
 
-learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy', 
-                                            patience=3, 
-                                            verbose=1, 
-                                            factor=0.5, 
-                                            min_lr=LR)
+# first define model
+tuner = RandomSearch(
+    build_model,
+    objective='val_accuracy',
+    max_trials=1,  # how many model variations to test?
+    executions_per_trial=1,  # how many trials per variation? (same model could perform differently)
+    directory=LOG_DIR)
+
+tuner.search_space_summary()
+
+# add the search
+tuner.search(x=X_train,
+             y=y_train,
+             verbose=2, # just slapping this here bc jupyter notebook. The console out was getting messy.
+             epochs=EPOCHS,
+             batch_size=BATCH_SIZE,
+             #callbacks=[tensorboard],  # if you have callbacks like tensorboard, they go here.
+             validation_data=(X_test, y_test))
+
+tuner.results_summary()
+
+with open(f"tuner_{int(time.time())}.pkl", "wb") as f:
+    pickle.dump(tuner, f)
 
 
-# With data augmentation to prevent overfitting
+# tuner = pickle.load(open("tuner_1576628824.pkl","rb"))
+tuner.get_best_hyperparameters()[0].values
 
-augment_data = ImageDataGenerator( 
-        featurewise_center=False,  # set input mean to 0 over the dataset
-        samplewise_center=False,  # set each sample mean to 0
-        featurewise_std_normalization=False,  # divide inputs by std of the dataset
-        samplewise_std_normalization=False,  # divide each input by its std
-        zca_whitening=False,  # apply ZCA whitening
-        rotation_range=10,  # randomly rotate images in the range (degrees, 0 to 180)
-        zoom_range = 0.1, # Randomly zoom image 
-        width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
-        height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
-        horizontal_flip=False,  # randomly flip images
-        vertical_flip=False)  # randomly flip images
-
-augment_data.fit(X_train)
-augment_data.fit(X_val)
- 
-# Fit the model
-history = model.fit(augment_data.flow(X_train, y_train, batch_size=BATCH_SIZE),
-                              epochs = EPOCHS, validation_data=(X_val, y_val),
-                              verbose = 1, steps_per_epoch=X_train.shape[0] // BATCH_SIZE,
-                              callbacks=[learning_rate_reduction]) # , tensorboard
-
-###
-# # predicting the test set results
-y_pred = model.predict(X_test)
-y_pred = (y_pred > 0.5)
-
-# making the Confusion Matrix
-cm = confusion_matrix(y_test, y_pred)
-
-print("Our accuracy is {}%".format(((cm[0][0] + cm[1][1])/51)*100))
-
-sns.heatmap(cm,annot=True)
-plt.savefig('h.png')
-plt.show()
-
+tuner.get_best_models()[0].summary()
+# tuner.results_summary()
 
