@@ -12,9 +12,8 @@ Data from X.pickle and y.pickle which  was generated in CNN.py file
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, Activation
+from tensorflow.keras.layers import Dense, Activation
 from tensorflow.keras.layers import Flatten, Conv2D, MaxPooling2D
-# from tensorflow.keras.callbacks import TensorBoard
 import pickle
 import numpy as np
 import seaborn as sns
@@ -25,13 +24,11 @@ from keras.callbacks import ReduceLROnPlateau
 
 
 # data
-BATCH_SIZE = 35
-EPOCHS = 20
+BATCH_SIZE = 15
+EPOCHS = 800
 LR = 1e-3
 VALIDATION = 0.1 # part of test data which will be a validation set: from 0 to 1
 
-# MODEL_NAME = 'PresenceOfCancer-{}-{}.model'.format(LR, '2conv-basic') # if I could use tensorboard
-# tensorboard = TensorBoard(log_dir='logs/{}'.format(MODEL_NAME))
 
 # import data
 X_train = pickle.load(open("X.train","rb"))
@@ -50,41 +47,84 @@ X_test = X_test/255.0
 y_test = np.array(y_test).reshape(-1, 1)
 
 
-# # creating two sets from training data
+# creating two sets from training data
 X_val = X_train[:int(len(X_train)*VALIDATION)]
 y_val = y_train[:int(len(y_train)*VALIDATION)]
 
 X_train = X_train[int(len(X_train)*VALIDATION):]
 y_train = y_train[int(len(y_train)*VALIDATION):]
 
+
+########## PLOT PRESENTING CLASSES LAYOUT ##########
+# Number of examples
+print("TRAIN: No:{}, Yes:{} ".format(list(y_train).count(0), list(y_train).count(1))) # -> 
+print("VALIDATION: No:{}, Yes:{} ".format(list(y_val).count(0), list(y_val).count(1))) # -> 
+print("TEST: No:{}, Yes:{} ".format(list(y_test).count(0), list(y_test).count(1))) # ->
+Count = [[list(y_train).count(0), list(y_val).count(0), list(y_test).count(0)],  # no
+        [list(y_train).count(1), list(y_val).count(1), list(y_test).count(1)]]   # yes
+
+# visualize it - Bar Plot #####################
+No = Count[0]
+Yes = Count[1]
+Set = ['Train set', 'Validation set', 'Test set']
+
+X = np.arange(len(Set))
+width = 0.35
+
+fig, ax = plt.subplots()
+no = ax.bar(X - width/2, No, width, color = 'b', label="No")
+yes = ax.bar(X + width/2, Yes, width, color = 'g', label="Yes")
+ax.set_ylabel('Count')
+ax.set_xticks(X)
+ax.set_xticklabels(Set)
+ax.set_title('Count of classes in each set')
+ax.legend()
+
+def autolabel(tumor):
+    """Attach a text label above each bar in *Set*, displaying its amount."""
+    for rect in tumor:
+        height = rect.get_height()
+        ax.annotate('{}'.format(height),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # 3 points vertical offset
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+# 
+autolabel(no)
+autolabel(yes)
+
+fig.tight_layout()
+
+# plt.show()
+###############################################
+
+
 # Create a model
 model = Sequential() # Sequential - the way to build a model in Keras layer by layer
 
-model.add(Conv2D(256, (3,3), input_shape = X_train.shape[1:])) # 1: because we needn't to -1
+model.add(Conv2D(48, (3,3), input_shape = X_train.shape[1:])) # 1: because we needn't to -1
 model.add(Activation("relu"))
 model.add(MaxPooling2D(pool_size = (2,2)))
 
-model.add(Conv2D(256, (3,3), strides=(2,2), padding="valid"))
+model.add(Conv2D(16, (3,3), strides=(2,2), padding="valid"))
+model.add(Activation("relu"))
+model.add(MaxPooling2D(pool_size = (2,2)))
+
+model.add(Conv2D(96, (3,3), strides=(2,2), padding="valid"))
 model.add(Activation("relu"))
 model.add(MaxPooling2D(pool_size = (2,2)))
 
 model.add(Flatten())
-model.add(Dense(64)) # , kernel_initializer='uniform'
-# model.add(Activation("relu"))
+model.add(Dense(64)) 
 
 model.add(Dense(1))
 model.add(Activation('sigmoid'))
 
-# opt = keras.optimizers.Adam(learning_rate=LR) # using this - the score is approx 60%
-
-# # Train the model
-model.compile(loss="binary_crossentropy", # loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+# Train the model
+model.compile(loss="binary_crossentropy",
             optimizer="adam",
             metrics=['accuracy'])
 
-# Define the Keras TensorBoard callback.
-# logdir="logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-# tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir)
 
 learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy', 
                                             patience=3, 
@@ -94,7 +134,6 @@ learning_rate_reduction = ReduceLROnPlateau(monitor='val_accuracy',
 
 
 # With data augmentation to prevent overfitting
-
 augment_data = ImageDataGenerator( 
         featurewise_center=False,  # set input mean to 0 over the dataset
         samplewise_center=False,  # set each sample mean to 0
@@ -110,15 +149,59 @@ augment_data = ImageDataGenerator(
 
 augment_data.fit(X_train)
 augment_data.fit(X_val)
+
+
+# to save the best model
+checkpoint = keras.callbacks.ModelCheckpoint("model_checkpoint.hdf5", 
+            monitor='val_accuracy', verbose=1,
+            save_best_only=True, mode='auto', period=1)
+
+
+csv_logger = keras.callbacks.CSVLogger("Brain_tumor_detection.csv", separator=",", append=False)
+
+
+early_stop = keras.callbacks.EarlyStopping(patience=30)
+
  
 # Fit the model
 history = model.fit(augment_data.flow(X_train, y_train, batch_size=BATCH_SIZE),
                               epochs = EPOCHS, validation_data=(X_val, y_val),
                               verbose = 1, steps_per_epoch=X_train.shape[0] // BATCH_SIZE,
-                              callbacks=[learning_rate_reduction]) # , tensorboard
+                              callbacks=[learning_rate_reduction, csv_logger, checkpoint, early_stop])
 
-###
-# # predicting the test set results
+
+# Model performance #######################
+# plot model performance
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
+loss = history.history['loss']
+val_loss = history.history['val_loss']
+epochs_range = range(1, len(history.epoch) + 1)
+
+plt.figure(figsize=(15,5))
+
+plt.subplot(1, 2, 1)
+plt.plot(epochs_range, acc, label='Train Set')
+plt.plot(epochs_range, val_acc, label='Val Set')
+plt.legend(loc="best")
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.title('Model Accuracy')
+
+plt.subplot(1, 2, 2)
+plt.plot(epochs_range, loss, label='Train Set')
+plt.plot(epochs_range, val_loss, label='Val Set')
+plt.legend(loc="best")
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.title('Model Loss')
+
+plt.tight_layout()
+plt.show()
+##########################################
+
+
+# predicting the test set results
 y_pred = model.predict(X_test)
 y_pred = (y_pred > 0.5)
 
